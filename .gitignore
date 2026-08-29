@@ -1,0 +1,25 @@
+# dependencies / build output (this project currently has neither)
+node_modules/
+dist/
+.wrangler/
+
+# never commit credentials of any kind
+patterns.txt
+.env
+.env.*
+*.pem
+*.key
+.dev.vars
+wrangler.toml.local
+
+# source photos of the physical build are deliberately kept out of the repo
+photos/
+*.HEIC
+*.heic
+
+# editor / OS noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

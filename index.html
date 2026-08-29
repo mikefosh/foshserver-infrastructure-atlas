@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>foshserver — Infrastructure Atlas</title>
+<meta name="description" content="An interactive 3D map of foshserver: a full-tower Ubuntu homelab running a 75 TB mergerfs media pool, hardware transcoding, and a self-hosted family photo platform.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#080b10">
+
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'none';
+  script-src 'self' https://cdn.jsdelivr.net;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src https://fonts.gstatic.com;
+  img-src 'self' data:;
+  connect-src 'self';
+  base-uri 'none';
+  form-action 'none';
+  frame-ancestors 'none'">
+
+<meta property="og:title" content="foshserver — Infrastructure Atlas">
+<meta property="og:description" content="An interactive 3D map of a full-tower Ubuntu homelab: 75 TB mergerfs pool, dual-path hardware transcoding, self-hosted family photos.">
+<meta property="og:type" content="website">
+
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+
+<a class="skip" href="#components">Skip to component list</a>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-text">
+      <strong>foshserver</strong>
+      <span class="brand-sub">Infrastructure Atlas</span>
+    </span>
+  </div>
+
+  <div class="toolbar" role="group" aria-label="Visualization controls">
+    <button type="button" id="btn-explode" class="tool" aria-pressed="false">
+      <span class="tool-key">E</span> Exploded view
+    </button>
+    <button type="button" id="btn-labels" class="tool" aria-pressed="true">
+      <span class="tool-key">L</span> Labels
+    </button>
+    <button type="button" id="btn-reset" class="tool">
+      <span class="tool-key">R</span> Reset view
+    </button>
+  </div>
+</header>
+
+<main>
+  <div id="stage" class="stage">
+    <canvas id="scene" aria-label="Interactive 3D visualization of the foshserver chassis. A full component list follows below." role="img"></canvas>
+    <div id="labels" class="labels" aria-hidden="true"></div>
+
+    <div id="loading" class="loading">
+      <div class="loading-bar"><i></i></div>
+      <p>Assembling chassis…</p>
+    </div>
+
+    <p id="hint" class="hint">Drag to orbit · scroll to zoom · click a component</p>
+
+    <noscript>
+      <div class="noscript">
+        The 3D atlas needs JavaScript. The full component breakdown is still listed below.
+      </div>
+    </noscript>
+  </div>
+
+  <aside id="panel" class="panel" aria-live="polite">
+    <button type="button" id="panel-close" class="panel-close" aria-label="Close details">&times;</button>
+    <div id="panel-body" class="panel-body"></div>
+  </aside>
+</main>
+
+<section id="components" class="rail-wrap">
+  <h2 class="rail-title">Components</h2>
+  <div id="rail" class="rail" role="list"></div>
+</section>
+
+<footer class="foot">
+  <p class="foot-note">Stylized hardware visualization — architecture based on the live foshserver build.</p>
+  <p class="foot-meta">Not to scale. No CAD or dimensional accuracy is implied or intended.</p>
+</footer>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
