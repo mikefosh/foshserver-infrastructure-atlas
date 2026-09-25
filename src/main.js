@@ -15,6 +15,7 @@ const loading = document.getElementById('loading');
 const btnExplode = document.getElementById('btn-explode');
 const btnLabels  = document.getElementById('btn-labels');
 const btnReset   = document.getElementById('btn-reset');
+const btnPanels  = document.getElementById('btn-panels');
 
 const view = buildScene(canvas);
 window.atlasView = view;   // handy for debugging and automated checks; nothing else uses it
@@ -131,10 +132,12 @@ canvas.addEventListener('pointermove', (e) => {
   const prev = pointers.get(e.pointerId);
 
   if (!prev) {
-    // hover highlight only when not dragging
-    const id = view.pick(e.clientX, e.clientY);
+    // hover highlight only when not dragging; a removable cover takes priority
+    const pid = view.pickPanel(e.clientX, e.clientY);
+    view.hoverPanel(pid);
+    const id = pid ? null : view.pick(e.clientX, e.clientY);
     view.hover(id);
-    canvas.classList.toggle('pickable', !!id);
+    canvas.classList.toggle('pickable', !!id || !!pid);
     return;
   }
 
@@ -160,6 +163,15 @@ function endPointer(e) {
   canvas.classList.remove('grabbing');
 
   if (had && !dragged && e.type === 'pointerup') {
+    const pid = view.pickPanel(e.clientX, e.clientY);
+    if (pid) {                       // tap a cover: lift it off
+      view.togglePanel(pid);
+      view.hoverPanel(null);
+      view.stopAuto();
+      syncPanelsButton();
+      dismissHint();
+      return;
+    }
     const id = view.pick(e.clientX, e.clientY);
     if (id) choose(id, false);
     else closePanel();
@@ -188,6 +200,7 @@ window.addEventListener('keydown', (e) => {
     case 'r': case 'R': view.resetView(); break;
     case 'e': case 'E': btnExplode.click(); break;
     case 'l': case 'L': btnLabels.click(); break;
+    case 'p': case 'P': btnPanels.click(); break;
     case 'ArrowLeft':  view.orbitBy(-0.12, 0); e.preventDefault(); break;
     case 'ArrowRight': view.orbitBy(0.12, 0); e.preventDefault(); break;
     case 'ArrowUp':    view.orbitBy(0, -0.09); e.preventDefault(); break;
@@ -217,6 +230,18 @@ btnLabels.addEventListener('click', () => {
 });
 
 btnReset.addEventListener('click', () => { view.resetView(); dismissHint(); });
+
+/* Panels: pressed = every cover in place. Click strips them all, or puts
+   them all back once any has been removed. */
+function syncPanelsButton() {
+  btnPanels.setAttribute('aria-pressed', String(view.panelsRemoved === 0));
+}
+btnPanels.addEventListener('click', () => {
+  view.setPanels(view.panelsRemoved > 0);
+  view.stopAuto();
+  syncPanelsButton();
+  dismissHint();
+});
 
 /* ---------- floating labels ---------- */
 

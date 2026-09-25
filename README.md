@@ -162,7 +162,8 @@ Commit and push; Pages redeploys on its own.
   below the canvas — which is also what a screen reader is pointed at from the
   canvas `role="img"` description.
 - Keyboard: arrow keys orbit, `+` / `-` zoom, `R` resets, `E` explodes, `L`
-  toggles labels, `Escape` closes the panel.
+  toggles labels, `P` strips or restores the removable covers, `Escape`
+  closes the panel.
 - `prefers-reduced-motion` disables the idle auto-rotation, the camera damping,
   and the explode animation, snapping directly to each end state instead.
 
@@ -187,4 +188,7 @@ perforated mesh, drive labels, braided sleeving) is painted onto a canvas at
 load time, lighting comes from a small generated environment map plus one
 shadow-casting key light, and the case is opaque steel with the side panel
 off. Hovering or selecting the power supply or the drive column fades the
-shroud or the cover plate that hides it.
+shroud or the cover plate that hides it. Five covers are removable with a tap
+(top panel, front door, closed side panel, PSU shroud, drive-bay cover
+plate); each slides off in its natural direction and fades. The **Panels**
+button (or `P`) strips them all or puts them all back.

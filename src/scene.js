@@ -440,6 +440,10 @@ export function buildScene(canvas) {
   innerLow.position.set(2.2, -0.8, 0.2);
   scene.add(innerLow);
 
+  const back = new THREE.DirectionalLight(0xdfe8ff, 1.1);   // lifts the cable side once the closed panel comes off
+  back.position.set(-6, 4, -3);
+  scene.add(back);
+
   const rimA = new THREE.PointLight(COL.amber, 1.6, 7, 2);   // faint warm accent on the drive column
   rimA.position.set(1.9, -0.6, -1.4);
   scene.add(rimA);
@@ -463,6 +467,29 @@ export function buildScene(canvas) {
   const groups = {};
   const pickables = [];
   const reveal = { psu: [], pool: [] };   // meshes that fade when these parts are inspected
+  const revealSet = { psu: new Set(), pool: new Set() };
+
+  /* Removable covers: tap one and it slides off in its natural direction and
+     fades out. Each is a sub-group of the chassis with its own material copies. */
+  const panels = {};
+  const panelOrder = ['top', 'front', 'side', 'shroud', 'cover'];
+  function panel(id, slide) {
+    const grp = new THREE.Group();
+    grp.userData.panelId = id;
+    panels[id] = { id, group: grp, slide, t: 0, goal: 0, hover: 0, meshes: [] };
+    return grp;
+  }
+  function finishPanel(id) {
+    const P = panels[id];
+    P.group.traverse((o) => {
+      if (!o.isMesh) return;
+      o.material = o.material.clone();
+      o.material.transparent = true;
+      o.userData.ownMaterial = true;
+      o.userData.panelId = id;
+      P.meshes.push(o);
+    });
+  }
 
   function register(g) {
     groups[g.userData.componentId] = g;
@@ -492,13 +519,19 @@ export function buildScene(canvas) {
       g.add(foot);
     }
 
-    // top: steel frame + perforated mesh insert (the radiator sits under it)
-    g.add(box(CASE.w, T, CASE.d, M.paint, 0, HY - T / 2, 0));
+    // top: steel frame + perforated mesh insert (the radiator sits under it) — removable
+    const topP = panel('top', new THREE.Vector3(0, 2.4, 0));
+    topP.add(box(CASE.w, T, CASE.d, M.paint, 0, HY - T / 2, 0));
     const topMesh = mesh(new THREE.PlaneGeometry(1.7, 4.4), M.mesh, -0.1, HY + 0.002, 0.3);
     topMesh.rotation.x = -Math.PI / 2;
-    g.add(topMesh);
-    g.add(box(1.75, 0.02, 0.06, M.paintDark, -0.1, HY + 0.01, 0.3 - 2.22));
-    g.add(box(1.75, 0.02, 0.06, M.paintDark, -0.1, HY + 0.01, 0.3 + 2.22));
+    topP.add(topMesh);
+    topP.add(box(1.75, 0.02, 0.06, M.paintDark, -0.1, HY + 0.01, 0.3 - 2.22));
+    topP.add(box(1.75, 0.02, 0.06, M.paintDark, -0.1, HY + 0.01, 0.3 + 2.22));
+    // front I/O on the top edge: power button and a row of ports
+    topP.add(mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.02, 20), M.alu, 0.6, HY + 0.01, -HZ + 0.45));
+    for (let i = 0; i < 4; i++) topP.add(box(0.14, 0.015, 0.07, M.plastic, -0.2 + i * 0.22, HY + 0.008, -HZ + 0.45));
+    g.add(topP);
+    finishPanel('top');
 
     // rear panel with fan grille, I/O opening, slot covers, PSU cut-out
     g.add(box(CASE.w, CASE.h, T, M.paint, 0, 0, HZ - T / 2));
@@ -516,22 +549,43 @@ export function buildScene(canvas) {
     const psuGrille = mesh(new THREE.PlaneGeometry(1.3, 0.7), M.mesh, -0.15, -HY + 0.55, HZ + 0.02);
     g.add(psuGrille);
 
-    // front: solid sound-dampened door with a slight bevel, side intake vents
-    g.add(rbox(CASE.w, CASE.h, 0.16, M.paintDark, 0, 0, -HZ + 0.08, 0.05));
-    g.add(box(0.02, CASE.h - 0.8, 0.1, M.mesh, HX - 0.01, 0.2, -HZ + 0.25));
-    // front I/O on the top edge: power button and a row of ports
-    g.add(mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.02, 20), M.alu, 0.6, HY + 0.01, -HZ + 0.45));
-    for (let i = 0; i < 4; i++) g.add(box(0.14, 0.015, 0.07, M.plastic, -0.2 + i * 0.22, HY + 0.008, -HZ + 0.45));
-    // inner front bulkhead + three 140 mm intakes + dust filter frame
-    g.add(box(CASE.w - 0.1, CASE.h - 0.2, 0.03, M.paintDark, 0, 0, -HZ + 0.18));
+    // front: solid sound-dampened door with a slight bevel, side intake vents — removable
+    const frontP = panel('front', new THREE.Vector3(0, 0, -2.4));
+    frontP.add(rbox(CASE.w, CASE.h, 0.16, M.paintDark, 0, 0, -HZ + 0.08, 0.05));
+    frontP.add(box(0.02, CASE.h - 0.8, 0.1, M.mesh, HX - 0.01, 0.2, -HZ + 0.25));
+    g.add(frontP);
+    finishPanel('front');
+    // behind the door: dust filter, then the three 140 mm intakes in their frame
+    const filter = mesh(new THREE.PlaneGeometry(CASE.w - 0.3, CASE.h - 0.5), M.mesh, 0, 0.1, -HZ + 0.2);
+    g.add(filter);
+    g.add(box(CASE.w - 0.1, 0.12, 0.06, M.paintDark, 0, HY - 0.16, -HZ + 0.2));
+    g.add(box(CASE.w - 0.1, 0.12, 0.06, M.paintDark, 0, -HY + 0.16, -HZ + 0.2));
+    g.add(box(0.12, CASE.h - 0.2, 0.06, M.paintDark, -HX + 0.11, 0, -HZ + 0.2));
+    g.add(box(0.12, CASE.h - 0.2, 0.06, M.paintDark, HX - 0.11, 0, -HZ + 0.2));
     for (let i = 0; i < 3; i++) {
       const f = fan(0.7, 0.25);
       f.position.set(-0.05, -1.55 + i * 1.42, -HZ + 0.36);
       g.add(f);
     }
 
+    // closed right-hand side panel — removable, reveals the cable side of the tray
+    const sideP = panel('side', new THREE.Vector3(-2.4, 0, 0));
+    sideP.add(rbox(T, CASE.h, CASE.d, M.paint, -HX + T / 2, 0, 0, 0.03));
+    g.add(sideP);
+    finishPanel('side');
+
     // motherboard tray, standoff plane and the ATX board
     g.add(box(0.05, CASE.h - 0.3, CASE.d - 0.45, M.paint, -HX + 0.16, 0.05, 0.1));
+    // cable side of the tray: CPU cut-out, two 2.5" drives, bundles under straps, fan hub
+    const TB = -HX + 0.135;   // back face of the tray
+    g.add(box(0.01, 1.0, 1.0, M.plastic, TB - 0.005, 1.5, 1.5));
+    g.add(rbox(0.07, 0.7, 1.0, M.drive, TB - 0.045, -1.1, 1.0, 0.01));
+    g.add(rbox(0.07, 0.7, 1.0, M.plastic, TB - 0.045, -1.1, 2.15, 0.01));
+    g.add(box(0.03, 0.25, 0.9, M.pcbBlack, TB - 0.02, 2.55, 0.8));
+    g.add(cable([[TB - 0.06, -2.6, -0.5], [TB - 0.07, -0.6, -0.48], [TB - 0.07, 1.4, -0.52], [TB - 0.06, 2.5, -0.3]], 0.09));
+    g.add(cable([[TB - 0.05, -2.6, 0.2], [TB - 0.06, -1.0, 0.25], [TB - 0.06, 0.6, 0.15], [TB - 0.05, 2.5, 0.6]], 0.06));
+    g.add(cable([[TB - 0.05, -1.4, 0.55], [TB - 0.06, -1.5, -0.2], [TB - 0.06, -2.2, -0.45]], 0.035, M.flatCable));
+    for (const y of [-1.6, 0.2, 1.9]) g.add(box(0.04, 0.12, 0.34, M.plastic, TB - 0.09, y, -0.5));
     // cable grommets in the tray
     for (const [y, z] of [[1.7, -0.5], [0.3, -0.5], [-1.2, -0.5], [2.35, 1.6]]) {
       const gr = mesh(roundedBoxGeo(0.06, 0.55, 0.22, 0.06), M.plastic, -HX + 0.17, y, z);
@@ -558,28 +612,26 @@ export function buildScene(canvas) {
 
     // full-length PSU shroud with a perforated section toward the front
     const shroudTopY = SHROUD_TOP, shroudH = shroudTopY - (-HY + T);
+    const shroudP = panel('shroud', new THREE.Vector3(2.3, -0.25, 0));
     const shroud = rbox(CASE.w - 0.36, shroudH, CASE.d - 0.24, M.paint, 0.0, (shroudTopY + (-HY + T)) / 2, 0.0, 0.04);
-    shroud.material = M.paint.clone(); shroud.material.transparent = true; shroud.userData.ownMaterial = true;
-    g.add(shroud);
-    reveal.psu.push(shroud);
+    shroudP.add(shroud);
     const shroudVent = mesh(new THREE.PlaneGeometry(1.6, 1.6), M.mesh, 0.0, shroudTopY + 0.003, -HZ + 1.45);
     shroudVent.rotation.x = -Math.PI / 2;
-    g.add(shroudVent);
+    shroudP.add(shroudVent);
     for (const z of [0.6, 1.6]) {   // grommets on the shroud top
-      g.add(mesh(roundedBoxGeo(0.5, 0.05, 0.18, 0.04), M.plastic, 0.35, shroudTopY + 0.01, z));
+      shroudP.add(mesh(roundedBoxGeo(0.5, 0.05, 0.18, 0.04), M.plastic, 0.35, shroudTopY + 0.01, z));
     }
+    g.add(shroudP);
+    finishPanel('shroud');
+    for (const m of panels.shroud.meshes) { reveal.psu.push(m); revealSet.psu.add(m); }
 
     // drive-bay cover plate: slotted steel on the open side of the storage section
-    const plate = box(0.03, CASE.h - 1.4, 1.75, M.paint, 0.72, shroudTopY + (CASE.h - 1.4) / 2 + 0.1, DRIVE_Z);
-    plate.material = M.paint.clone(); plate.material.transparent = true; plate.userData.ownMaterial = true;
-    g.add(plate);
-    reveal.pool.push(plate);
-    for (let r = 0; r < 9; r++) {
-      const slot = box(0.04, 0.05, 0.9, M.plastic, 0.72, -1.7 + r * 0.5, DRIVE_Z);
-      slot.material = M.plastic.clone(); slot.material.transparent = true; slot.userData.ownMaterial = true;
-      g.add(slot);
-      reveal.pool.push(slot);
-    }
+    const coverP = panel('cover', new THREE.Vector3(2.1, 0, 0));
+    coverP.add(box(0.03, CASE.h - 1.4, 1.75, M.paint, 0.72, shroudTopY + (CASE.h - 1.4) / 2 + 0.1, DRIVE_Z));
+    for (let r = 0; r < 9; r++) coverP.add(box(0.04, 0.05, 0.9, M.plastic, 0.72, -1.7 + r * 0.5, DRIVE_Z));
+    g.add(coverP);
+    finishPanel('cover');
+    for (const m of panels.cover.meshes) { reveal.pool.push(m); revealSet.pool.add(m); }
     // cable bundles: 24-pin up from the shroud grommet, CPU power over the top,
     // and a couple of drive power leads heading forward
     g.add(cable([[0.4, shroudTopY, 0.6], [0.5, -0.3, 0.2], [0.15, 0.9, -0.05], [BX + 0.1, 1.2, 0.05]], 0.07));
@@ -898,26 +950,49 @@ export function buildScene(canvas) {
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
 
-  function pick(clientX, clientY) {
+  function castAt(clientX, clientY) {
     const r = canvas.getBoundingClientRect();
     ndc.x = ((clientX - r.left) / r.width) * 2 - 1;
     ndc.y = -((clientY - r.top) / r.height) * 2 + 1;
     ray.setFromCamera(ndc, camera);
-    const hits = ray.intersectObjects(pickables, false);
+    // removed covers are invisible and must not swallow clicks
+    return ray.intersectObjects(pickables, false).filter((h) => {
+      const pid = h.object.userData.panelId;
+      return !pid || panels[pid].t < 0.5;
+    });
+  }
+
+  /* which removable cover (if any) is under the pointer */
+  function pickPanel(clientX, clientY) {
+    const hits = castAt(clientX, clientY);
+    return hits.length ? (hits[0].object.userData.panelId || null) : null;
+  }
+
+  function pick(clientX, clientY) {
+    const hits = castAt(clientX, clientY);
     // the shroud and the drive cover plate hand the click to what they cover
     for (const h of hits) {
       const o = h.object;
-      if (reveal.psu.includes(o) || reveal.pool.includes(o)) continue;
+      if (revealSet.psu.has(o) || revealSet.pool.has(o)) continue;
       return o.userData.componentId;
     }
     if (hits.length) {
       const o = hits[0].object;
-      if (reveal.psu.includes(o)) return 'psu';
-      if (reveal.pool.includes(o)) return 'pool';
+      if (revealSet.psu.has(o)) return 'psu';
+      if (revealSet.pool.has(o)) return 'pool';
       return o.userData.componentId;
     }
     return null;
   }
+
+  /* ---------- removable covers ---------- */
+
+  function togglePanel(id) { const P = panels[id]; if (P) P.goal = P.goal ? 0 : 1; }
+  function setPanels(on) { for (const id of panelOrder) panels[id].goal = on ? 0 : 1; }
+  function panelsRemoved() { return panelOrder.filter((id) => panels[id].goal === 1).length; }
+  let hoveredPanel = null;
+  function hoverPanel(id) { hoveredPanel = id; }
+  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
 
   /* ---------- frame loop ---------- */
 
@@ -941,10 +1016,25 @@ export function buildScene(canvas) {
       g.position.copy(g.userData.explode).multiplyScalar(explodeT);
     }
 
-    for (const k of ['psu', 'pool']) {
-      revealT[k] += (revealGoal[k] - revealT[k]) * (REDUCED ? 1 : 0.15);
-      const op = 1 - revealT[k] * 0.82;
-      for (const m of reveal[k]) { m.material.opacity = op; m.castShadow = op > 0.6; }
+    for (const k of ['psu', 'pool']) revealT[k] += (revealGoal[k] - revealT[k]) * (REDUCED ? 1 : 0.15);
+
+    for (const id of panelOrder) {
+      const P = panels[id];
+      P.t += (P.goal - P.t) * (REDUCED ? 1 : 0.085);
+      if (Math.abs(P.goal - P.t) < 0.002) P.t = P.goal;
+      const e = easeOut(P.t);
+      P.group.position.copy(P.slide).multiplyScalar(e);
+      P.hover += ((hoveredPanel === id && P.goal === 0 ? 1 : 0) - P.hover) * 0.2;
+      const gone = P.t >= 0.999;
+      for (const m of P.meshes) {
+        let op = 1 - e;
+        if (revealSet.psu.has(m)) op *= 1 - revealT.psu * 0.82;
+        if (revealSet.pool.has(m)) op *= 1 - revealT.pool * 0.82;
+        m.material.opacity = op;
+        m.visible = !gone;
+        m.castShadow = op > 0.6;
+        if (m.material.emissive) { m.material.emissive.setHex(COL.cyan); m.material.emissiveIntensity = 0.06 * P.hover; }
+      }
     }
 
     renderer.render(scene, camera);
@@ -984,6 +1074,8 @@ export function buildScene(canvas) {
     renderer, scene, camera, ctl,
     update, resize, resetView, zoomBy, orbitBy,
     setExploded, select, hover, pick, labelPositions,
+    pickPanel, hoverPanel, togglePanel, setPanels,
+    get panelsRemoved() { return panelsRemoved(); },
     get selected() { return selected; },
     stopAuto() { ctl.autoRotate = false; },
   };
