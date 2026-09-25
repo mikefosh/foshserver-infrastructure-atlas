@@ -33,7 +33,7 @@ what lets the site ship a strict `script-src` CSP with no `'unsafe-inline'`.
 | `index.html` | Page shell, meta, CSP |
 | `src/style.css` | All styling; single dark theme |
 | `src/hardware.js` | **The public content.** Component facts and copy |
-| `src/scene.js` | Three.js scene, geometry, camera controls, picking |
+| `src/scene.js` | Three.js scene: procedural textures, materials, geometry, lighting, camera, picking |
 | `src/main.js` | Interaction: pointer, keyboard, panel, labels |
 | `_headers` | Cloudflare Pages security headers |
 | `favicon.svg` | Site icon |
@@ -181,3 +181,10 @@ behind a slotted cover plate, the graphics card lying flat in the primary slot
 with its fans facing the shroud, the SATA controller a few slots below it, two
 M.2 heatsink shields, and a full-length power-supply shroud. The photographs
 themselves are not part of the repository.
+
+Rendering is fully procedural: every texture (circuit board, brushed steel,
+perforated mesh, drive labels, braided sleeving) is painted onto a canvas at
+load time, lighting comes from a small generated environment map plus one
+shadow-casting key light, and the case is opaque steel with the side panel
+off. Hovering or selecting the power supply or the drive column fades the
+shroud or the cover plate that hides it.

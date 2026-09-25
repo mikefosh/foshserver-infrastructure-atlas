@@ -17,6 +17,7 @@ const btnLabels  = document.getElementById('btn-labels');
 const btnReset   = document.getElementById('btn-reset');
 
 const view = buildScene(canvas);
+window.atlasView = view;   // handy for debugging and automated checks; nothing else uses it
 
 /* ---------- tiny DOM helper (no innerHTML anywhere) ---------- */
 
