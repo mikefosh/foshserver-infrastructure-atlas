@@ -154,6 +154,7 @@ main {
   position: relative;
   min-height: 62svh;
   display: flex;
+  overflow: hidden; /* clips the closed panel; nothing inside should spill */
 }
 
 .stage {
@@ -236,7 +237,7 @@ main {
 
 /* ---------- floating labels ---------- */
 
-.labels { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.labels { position: absolute; inset: 0; pointer-events: none; z-index: 4; overflow: hidden; }
 .labels.hidden { display: none; }
 
 .lbl {
@@ -267,13 +268,14 @@ main {
   background: var(--surface);
   border-left: 1px solid var(--line);
   transform: translateX(102%);
-  transition: transform .42s var(--ease);
+  visibility: hidden;
+  transition: transform .42s var(--ease), visibility 0s linear .42s;
   z-index: 12;
   overflow-y: auto;
   overscroll-behavior: contain;
   box-shadow: -20px 0 46px rgba(0, 0, 0, 0.5);
 }
-.panel.open { transform: translateX(0); }
+.panel.open { transform: translateX(0); visibility: visible; transition: transform .42s var(--ease), visibility 0s; }
 
 .panel-close {
   position: sticky;
@@ -449,19 +451,23 @@ main {
 
   main { min-height: 56svh; }
 
-  /* panel becomes a bottom sheet */
+  /* panel becomes a bottom sheet, fixed to the viewport so it can never be
+     taller than the stage and slide its title under the top bar */
   .panel {
+    position: fixed;
     top: auto;
     left: 0;
     right: 0;
     bottom: 0;
     width: auto;
-    max-height: 74svh;
+    max-height: 66svh;
+    padding-bottom: env(safe-area-inset-bottom);
     border-left: none;
     border-top: 1px solid var(--line-hi);
     border-radius: 14px 14px 0 0;
     transform: translateY(102%);
     box-shadow: 0 -18px 46px rgba(0, 0, 0, 0.6);
+    z-index: 30;
   }
   .panel.open { transform: translateY(0); }
 

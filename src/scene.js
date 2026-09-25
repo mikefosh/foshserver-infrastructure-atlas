@@ -321,6 +321,16 @@ export function buildScene(canvas) {
     shield.position.set(-HX + 0.33, -0.62, 0.35);
     g.add(shield);
 
+    // second M.2 (scratch drive), lower slot under its own heatsink plate
+    const m2b = box(0.05, 0.22, 0.8, 0x2b3a49, { roughness: 0.45, metalness: 0.55 });
+    m2b.position.set(-HX + 0.27, -1.35, 0.55);
+    edges(m2b, COL.cyan, 0.4);
+    g.add(m2b);
+
+    const shieldB = box(0.09, 0.3, 0.9, 0x39434f, { roughness: 0.35, metalness: 0.85 });
+    shieldB.position.set(-HX + 0.33, -1.35, 0.55);
+    g.add(shieldB);
+
     register(g);
   }
 
@@ -404,7 +414,7 @@ export function buildScene(canvas) {
     ram:     new THREE.Vector3(0.2, 2.0, 1.5),
     gpu:     new THREE.Vector3(0.4, 0.3, 1.0),
     igpu:    new THREE.Vector3(-0.4, 0.86, 0.45),
-    nvme:    new THREE.Vector3(0.1, -0.62, 0.35),
+    nvme:    new THREE.Vector3(0.1, -0.95, 0.45),
     hba:     new THREE.Vector3(0.3, -1.05, 1.5),
     hba_new: new THREE.Vector3(0.5, -1.85, 1.35),
     nic:     new THREE.Vector3(0.2, 1.72, 2.15),

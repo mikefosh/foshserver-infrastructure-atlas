@@ -94,7 +94,7 @@ export const COMPONENTS = [
     facts: [
       '12 GB GDDR6',
       'NVENC hardware encoding',
-      'PCIe Gen4 ×8',
+      'PCIe 4.0 ×16',
     ],
     desc: [
       'Chosen for its 12 GB of memory rather than its raw speed. That capacity is what lets it hold a sizeable model resident for local inference while still having room to run video encode work.',
@@ -122,19 +122,19 @@ export const COMPONENTS = [
 
   {
     id: 'nvme',
-    name: '1 TB NVMe',
-    short: 'NVMe boot',
-    label: 'SYSTEM DISK',
-    sub: 'Operating system + containers',
+    name: '2 × 1 TB NVMe',
+    short: 'NVMe',
+    label: 'SYSTEM DISKS',
+    sub: 'System drive + scratch drive',
     accent: 'cyan',
     facts: [
-      '1 TB TEAM TM8FGP001T',
-      'NVMe solid state',
-      'OS + Docker',
+      'Samsung 990 PRO 1 TB — OS + containers',
+      'TEAM TM8FGP001T 1 TB — download & transcode scratch',
+      'PCIe 4.0 ×4 system slot',
     ],
     desc: [
-      'Deliberately separate from the media pool. The operating system, container images and the small, latency-sensitive databases that back the services all live on solid state, where random reads are effectively free.',
-      'Keeping this off the mechanical pool is what stops an interface feeling sluggish while the disks are busy with a large sequential transfer — the two workloads never share a spindle.',
+      'Both deliberately separate from the media pool. The operating system, container images and the small, latency-sensitive databases that back the services live on the 990 PRO, where random reads are effectively free.',
+      'The second drive exists to take the abuse. Downloads land on it, and the video re-encode pipeline stages roughly a terabyte a day of temporary files through it — write churn that would wear out a system drive in under two years. Isolating it keeps the system disk healthy and stops a busy transfer from ever making an interface feel sluggish, because the two workloads never share a device.',
     ],
   },
 

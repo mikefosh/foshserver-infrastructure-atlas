@@ -1,7 +1,9 @@
 # Cloudflare Pages response headers.
-# The CSP here is kept byte-identical in intent to the <meta> tag in index.html.
-# When two policies are present the browser enforces BOTH, so they must not
-# disagree — if you loosen one, loosen the other in the same commit.
+# The CSP here mirrors the <meta> tag in index.html, plus frame-ancestors,
+# which browsers only honour from a response header (in a <meta> tag it is
+# ignored and logs a console error). When two policies are present the browser
+# enforces BOTH, so they must not disagree — if you loosen one, loosen the other
+# in the same commit.
 
 /*
   Content-Security-Policy: default-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
