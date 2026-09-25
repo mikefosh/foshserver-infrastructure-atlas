@@ -18,13 +18,14 @@ export const COMPONENTS = [
     sub: 'Full-tower server chassis',
     accent: 'cyan',
     facts: [
-      'Full-tower form factor',
+      'Full tower, storage layout',
       'Sound-dampened steel panels',
-      'Modular multi-bracket drive layout',
+      '3 × 140 mm front intake · 140 mm rear exhaust',
+      'Full-length power-supply shroud',
     ],
     desc: [
-      'The Define 7 XL is the reason this build works as a server rather than a desktop that happens to be on. Its modular bay system takes far more 3.5" drives than a normal tower, and the dampening panels keep seven spinning disks quiet enough to live in a shared space.',
-      'Shown here with the side panel removed, which is how the interior is laid out for airflow: intake at the front across the drive cage, exhaust through the radiator at the top.',
+      'The Define 7 XL is the reason this build works as a server rather than a desktop that happens to be on. Built in its storage layout, the front third of the chamber becomes a drive column that takes far more 3.5" disks than a normal tower, and the dampening panels keep seven spinning drives quiet enough to live in a shared space.',
+      'Shown with the side panel removed. Air enters through three 140 mm fans behind the solid front door, washes over the drive column, and leaves through the 360 mm radiator in the roof and a 140 mm fan at the rear. Behind the motherboard tray sit the cable-management channel, the fan hub, and two 2.5" drives that hold local backups.',
     ],
   },
 
@@ -33,7 +34,7 @@ export const COMPONENTS = [
     name: '75 TB Media Pool',
     short: 'Drive cage',
     label: 'STORAGE',
-    sub: 'Front drive cage — mergerfs',
+    sub: 'Front drive column — mergerfs',
     accent: 'amber',
     facts: [
       '7-drive mergerfs pool',
@@ -42,7 +43,7 @@ export const COMPONENTS = [
       'JBOD pooling — not RAID',
     ],
     desc: [
-      'Seven mechanical drives presented to the operating system as one large filesystem by mergerfs. This is JBOD pooling, not RAID: each disk keeps its own independent filesystem and mergerfs unifies them into a single namespace.',
+      'Seven mechanical drives in a single column directly behind the front intake fans, presented to the operating system as one large filesystem by mergerfs. This is JBOD pooling, not RAID: each disk keeps its own independent filesystem and mergerfs unifies them into a single namespace.',
       'The practical consequence is worth stating plainly, because it is the most misunderstood part of a build like this. Pooling is not redundancy. Losing a disk costs only the files that lived on that disk rather than the whole array, but it still costs those files — the protection comes from a separate backup strategy, not from the pool itself.',
       'A parity layer is planned, which would add reconstruction of a failed drive on top of the existing pooling behaviour.',
     ],
@@ -58,11 +59,11 @@ export const COMPONENTS = [
     facts: [
       '8 cores / 16 threads',
       '3.5 GHz base · 5.3 GHz turbo',
-      '360 mm liquid cooling',
+      '360 mm liquid cooling, 3 × 120 mm fans',
     ],
     desc: [
       'The scheduling core of the server. Media analysis, container orchestration, photo indexing and database work all land here, and the sustained multi-container load is closer to a workstation profile than a desktop one.',
-      'The 360 mm AIO exhausts through the top of the case. Cooling headroom matters more than peak clock speed in this role — the machine runs continuously, so the design target is a low, stable temperature under long load rather than a high benchmark score.',
+      'A square pump block sits on the socket and feeds a 360 mm radiator mounted in the roof of the case, with its three fans underneath pushing warm air out through the top. Cooling headroom matters more than peak clock speed in this role — the machine runs continuously, so the design target is a low, stable temperature under long load rather than a high benchmark score.',
     ],
   },
 
@@ -97,7 +98,7 @@ export const COMPONENTS = [
       'PCIe 4.0 ×16',
     ],
     desc: [
-      'Chosen for its 12 GB of memory rather than its raw speed. That capacity is what lets it hold a sizeable model resident for local inference while still having room to run video encode work.',
+      'A dual-slot, twin-fan card in the primary slot, fans facing the power-supply shroud. Chosen for its 12 GB of memory rather than its raw speed. That capacity is what lets it hold a sizeable model resident for local inference while still having room to run video encode work.',
       'It handles the heavy, long-running encode jobs through NVENC, and general compute alongside them. It works as the second half of a deliberate split: the discrete card takes the batch workloads, while the processor’s built-in video engine takes live playback.',
     ],
   },
@@ -151,7 +152,7 @@ export const COMPONENTS = [
       'PCIe 3.0 ×2',
     ],
     desc: [
-      'The motherboard alone does not have enough SATA ports for seven pooled drives plus the system disk, so a host bus adapter makes up the difference.',
+      'The motherboard alone does not have enough SATA ports for seven pooled drives plus the backup disks, so a short host bus adapter a few slots below the graphics card makes up the difference, with its cables routed forward to the drive column.',
       'This one works, but it is the constrained link in the storage path: a PCIe ×2 connection is a narrow pipe to share across six drives when several are read at once. That constraint is what the incoming upgrade addresses.',
     ],
   },

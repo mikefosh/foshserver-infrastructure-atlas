@@ -173,3 +173,11 @@ Commit and push; Pages redeploys on its own.
 The visualization is **stylized**. Proportions are approximately 1 unit =
 100 mm so the interior reads as a real ATX tower, but no dimension is measured
 and nothing here is derived from CAD. It is a diagram, not a model.
+
+The *arrangement* does follow photographs of the actual build in its storage
+layout: a top-mounted 360 mm radiator with fans beneath it, a 140 mm rear
+exhaust, three 140 mm front intakes, a single seven-drive column at the front
+behind a slotted cover plate, the graphics card lying flat in the primary slot
+with its fans facing the shroud, the SATA controller a few slots below it, two
+M.2 heatsink shields, and a full-length power-supply shroud. The photographs
+themselves are not part of the repository.
